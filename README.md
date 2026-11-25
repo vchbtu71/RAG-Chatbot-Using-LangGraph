@@ -335,14 +335,12 @@ streamlit_rag_frontend.py
 
 ## 👨‍💻 Author
 
-Off Campus Code : BNWR4Q
+**Vivek Chaudhary**
 
-**Anmol Singh**
-
-B.Tech Electronics Engineering
+B.Tech Information Technology
 Harcourt Butler Technical University, Kanpur
 
-GitHub: `https://github.com/ianmol94`
+GitHub: `https://github.com/vchbtu71`
 
 ---
 
