@@ -128,8 +128,8 @@ Provides the Streamlit interface for:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/ianmol94/chatbot_by_rag.git
-cd chatbot_by_rag
+git clone https://github.com/vchbtu71/RAG-Chatbot-Using-LangGraph.git
+cd RAG-Chatbot-Using-LangGraph
 ```
 
 ### 2. Install dependencies
@@ -333,14 +333,14 @@ streamlit_rag_frontend.py
 * [ ] Improve retrieval using hybrid search
 * [ ] Add reranking for retrieved documents
 
-## 👨‍💻 Author
+## 👨‍💻 Project Maintainer
 
 **Vivek Chaudhary**
 
 B.Tech Information Technology
 Harcourt Butler Technical University, Kanpur
 
-GitHub: `https://github.com/vchbtu71`
+GitHub: [@vchbtu71](https://github.com/vchbtu71)
 
 ---
 

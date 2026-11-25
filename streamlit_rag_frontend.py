@@ -108,7 +108,11 @@ section[data-testid="stSidebar"] {
     min-width: 260px !important;
 }
 section[data-testid="stSidebar"] .block-container {
-    padding-top: 1.4rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+    gap: 0.7rem;
 }
 section[data-testid="stSidebar"] * {
     color: var(--text-primary);
@@ -122,7 +126,7 @@ section[data-testid="stSidebar"] p {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 1.2rem;
+    margin-bottom: 0.25rem;
 }
 .sidebar-brand-badge {
     width: 34px;
@@ -173,19 +177,6 @@ section[data-testid="stSidebar"] .stButton > button {
 }
 .new-chat-btn .stButton > button:hover {
     filter: brightness(1.08);
-}
-
-/* Thread id chip */
-.thread-chip {
-    background: var(--bg-card);
-    border: 1px solid var(--border-soft);
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 0.74rem;
-    color: var(--text-muted);
-    font-family: monospace;
-    margin-bottom: 1rem;
-    word-break: break-all;
 }
 
 /* ---------- Empty state: centered hero (title + input) ---------- */
@@ -466,18 +457,11 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    st.markdown(
-        f'<div class="thread-chip">Thread · {thread_key}</div>',
-        unsafe_allow_html=True,
-    )
-
     st.markdown('<div class="new-chat-btn">', unsafe_allow_html=True)
-    if st.button("＋  New Chat", use_container_width=True):
+    if st.button("＋  New Chat", width="stretch"):
         reset_chat()
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown("<div style='height: 0.8rem;'></div>", unsafe_allow_html=True)
 
     # Current document status
     if thread_docs:
@@ -489,7 +473,7 @@ with st.sidebar:
     else:
         st.info("No PDF indexed yet — attach one from the chat box below.")
 
-    st.markdown("<div style='height: 0.6rem;'></div>", unsafe_allow_html=True)
+    st.divider()
     st.subheader("Past conversations")
 
     if not threads:
@@ -497,8 +481,22 @@ with st.sidebar:
     else:
         for tid in threads:
             label = f"💬  {str(tid)[:8]}…"
-            if st.button(label, key=f"side-thread-{tid}", use_container_width=True):
+            if st.button(label, key=f"side-thread-{tid}", width="stretch"):
                 selected_thread = tid
+
+    st.divider()
+    st.link_button(
+        "View GitHub repository",
+        "https://github.com/vchbtu71/RAG-Chatbot-Using-LangGraph",
+        width="stretch",
+    )
+    with st.expander("About this project"):
+        st.write(
+            "A PDF question-answering chatbot built with LangGraph, "
+            "FAISS, Hugging Face embeddings, Groq, and Streamlit."
+        )
+        st.write("Features: PDF Q&A, web search, calculator, and stock lookup.")
+    st.caption("Created by vchbtu71")
 
 
 # ============================ Chat History / Empty State =========
