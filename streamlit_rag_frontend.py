@@ -338,6 +338,29 @@ def load_conversation(thread_id):
     return state.values.get("messages", [])
 
 
+def get_thread_title(thread_id, max_length=36):
+    """Use the first user message as a readable conversation title."""
+    for message in load_conversation(thread_id):
+        if not isinstance(message, HumanMessage):
+            continue
+
+        content = message.content
+        if not isinstance(content, str):
+            content = " ".join(
+                part.get("text", "")
+                for part in content
+                if isinstance(part, dict)
+            )
+
+        title = " ".join(content.split())
+        if title:
+            if len(title) > max_length:
+                return f"{title[:max_length - 1].rstrip()}…"
+            return title
+
+    return "New chat"
+
+
 def ingest_new_pdf(file_obj, thread_key, thread_docs):
     """Ingest a single uploaded PDF-like object if not already processed."""
     if file_obj.name in thread_docs:
@@ -480,7 +503,7 @@ with st.sidebar:
         st.caption("No past conversations yet.")
     else:
         for tid in threads:
-            label = f"💬  {str(tid)[:8]}…"
+            label = f"💬  {get_thread_title(tid)}"
             if st.button(label, key=f"side-thread-{tid}", width="stretch"):
                 selected_thread = tid
 
