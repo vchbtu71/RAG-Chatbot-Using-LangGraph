@@ -113,7 +113,8 @@ def rewrite_answer_in_hinglish(question: str, answer: str) -> str:
             "Rewrite the draft answer in natural Roman Hinglish, matching the user's "
             "way of writing Hindi with Latin letters and English words. Use Latin "
             "letters only; do not output any Devanagari characters. Preserve all "
-            "facts and useful Markdown structure. Do not add or remove facts."
+            "facts and useful Markdown structure. Do not add or remove facts. Never "
+            "label the answer as Hinglish or put '(Hinglish)' in a heading."
         )),
         HumanMessage(content=f"User's question:\n{question}\n\nDraft answer:\n{answer}"),
     ])
@@ -411,6 +412,7 @@ def chat_node(
             "writes Hindi in Devanagari, reply in Devanagari. If the user writes in "
             "English, reply in English. For mixed-language messages, follow the "
             "dominant language and script. Never include raw "
+            "language labels such as '(Hinglish)' in headings or answers. "
             "HTML tags such as `<br>`.\n\n"
 
             "For questions about the uploaded PDF or the owner's resume, "
