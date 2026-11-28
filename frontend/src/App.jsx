@@ -16,6 +16,7 @@ import {
   Paperclip,
   Plus,
   Sparkles,
+  Settings,
   X,
 } from "lucide-react";
 
@@ -68,6 +69,7 @@ function App() {
   const [fileInputKey, setFileInputKey] = useState(0);
   const [theme, setTheme] = useState(() => localStorage.getItem("nova-theme") || "crimson");
   const [themeOpen, setThemeOpen] = useState(false);
+  const [themeAnchor, setThemeAnchor] = useState("top");
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
   const themeMenuRef = useRef(null);
@@ -189,6 +191,34 @@ function App() {
   const isEmpty = messages.length === 0;
   const activeThread = threads.find((thread) => thread.id === threadId);
   const conversationTitle = activeThread?.title || (isEmpty ? "New conversation" : "Conversation");
+  const themePopover = (
+    <div className="theme-popover" role="dialog" aria-label="Choose a theme">
+      <div className="theme-popover-heading">Theme</div>
+      <div className="theme-options" role="radiogroup" aria-label="Color themes">
+        {themes.map((option) => (
+          <button
+            key={option.id}
+            className={`theme-option ${theme === option.id ? "theme-option-selected" : ""}`}
+            role="radio"
+            aria-checked={theme === option.id}
+            onClick={() => {
+              setTheme(option.id);
+              setThemeOpen(false);
+            }}
+          >
+            <span className={`theme-swatch swatch-${option.id}`} aria-hidden="true">
+              <i /><i /><i />
+            </span>
+            <span className="theme-option-copy">
+              <strong>{option.name}</strong>
+              <span>{option.description}</span>
+            </span>
+            {theme === option.id && <Check className="theme-check" size={19} strokeWidth={2.6} />}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className="app-shell">
@@ -226,6 +256,33 @@ function App() {
           ))}
         </div>
 
+        <div className="sidebar-actions">
+          <a
+            className="sidebar-action"
+            href="https://github.com/vchbtu71/RAG-Chatbot-Using-LangGraph"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <ArrowUpRight size={18} /><span>GitHub</span>
+          </a>
+          <div
+            className="sidebar-settings-control"
+            ref={themeAnchor === "sidebar" ? themeMenuRef : null}
+          >
+            <button
+              className="sidebar-action"
+              onClick={() => {
+                setThemeAnchor("sidebar");
+                setThemeOpen((open) => themeAnchor === "sidebar" ? !open : true);
+              }}
+              aria-expanded={themeOpen && themeAnchor === "sidebar"}
+            >
+              <Settings size={18} /><span>Settings</span>
+            </button>
+            {themeOpen && themeAnchor === "sidebar" && themePopover}
+          </div>
+        </div>
+
         <div className="sidebar-footer">
           <div className="avatar">V</div>
           <div className="profile-copy"><strong>Workspace</strong><span>Personal account</span></div>
@@ -239,44 +296,20 @@ function App() {
           <div className="breadcrumb"><strong>{conversationTitle}</strong></div>
           <div className="topbar-right">
             <span className="status-dot" /> AI assistant <span className="topbar-model">· Groq</span>
-            <div className="theme-control" ref={themeMenuRef}>
+            <div className="theme-control" ref={themeAnchor === "top" ? themeMenuRef : null}>
               <button
                 className={`theme-trigger ${themeOpen ? "theme-trigger-open" : ""}`}
-                onClick={() => setThemeOpen((open) => !open)}
+                onClick={() => {
+                  setThemeAnchor("top");
+                  setThemeOpen((open) => themeAnchor === "top" ? !open : true);
+                }}
                 aria-label="Choose theme"
                 aria-expanded={themeOpen}
                 aria-haspopup="dialog"
               >
                 <Palette size={19} strokeWidth={1.8} />
               </button>
-              {themeOpen && (
-                <div className="theme-popover" role="dialog" aria-label="Choose a theme">
-                  <div className="theme-popover-heading">Theme</div>
-                  <div className="theme-options" role="radiogroup" aria-label="Color themes">
-                    {themes.map((option) => (
-                      <button
-                        key={option.id}
-                        className={`theme-option ${theme === option.id ? "theme-option-selected" : ""}`}
-                        role="radio"
-                        aria-checked={theme === option.id}
-                        onClick={() => {
-                          setTheme(option.id);
-                          setThemeOpen(false);
-                        }}
-                      >
-                        <span className={`theme-swatch swatch-${option.id}`} aria-hidden="true">
-                          <i /><i /><i />
-                        </span>
-                        <span className="theme-option-copy">
-                          <strong>{option.name}</strong>
-                          <span>{option.description}</span>
-                        </span>
-                        {theme === option.id && <Check className="theme-check" size={19} strokeWidth={2.6} />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {themeOpen && themeAnchor === "top" && themePopover}
             </div>
           </div>
         </header>
