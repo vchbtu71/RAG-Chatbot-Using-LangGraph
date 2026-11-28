@@ -3,13 +3,13 @@ from __future__ import annotations
 import os
 import sqlite3
 import tempfile
+from functools import lru_cache
 from typing import Annotated, Any, Dict, Optional, TypedDict
 
 import requests
 from dotenv import load_dotenv
 
 from langchain_groq import ChatGroq
-from langchain_huggingface import HuggingFaceEmbeddings
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
@@ -38,9 +38,14 @@ llm = ChatGroq(
     temperature=0,
 )
 
-embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
-)
+@lru_cache(maxsize=1)
+def _get_embeddings():
+    """Load the local embedding model only when the first PDF is ingested."""
+    from langchain_huggingface import HuggingFaceEmbeddings
+
+    return HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
 
 
 # -------------------
@@ -94,7 +99,7 @@ def ingest_pdf(
 
         vector_store = FAISS.from_documents(
             chunks,
-            embeddings
+            _get_embeddings()
         )
 
         retriever = vector_store.as_retriever(
