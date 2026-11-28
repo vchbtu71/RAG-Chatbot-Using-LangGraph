@@ -4,9 +4,12 @@ import remarkGfm from "remark-gfm";
 import {
   ArrowDown,
   ArrowUp,
+  ArrowUpRight,
   Check,
   FileText,
+  Lightbulb,
   LoaderCircle,
+  ListChecks,
   Menu,
   MessageSquare,
   Palette,
@@ -17,9 +20,9 @@ import {
 } from "lucide-react";
 
 const suggestions = [
-  { title: "Summarize a document", prompt: "Summarize the uploaded document." },
-  { title: "Find key insights", prompt: "What are the key takeaways?" },
-  { title: "Explain a concept", prompt: "Explain the main ideas in simple terms." },
+  { title: "Summarize a document", prompt: "Summarize the uploaded document.", icon: FileText },
+  { title: "Find key insights", prompt: "What are the key takeaways?", icon: ListChecks },
+  { title: "Explain a concept", prompt: "Explain the main ideas in simple terms.", icon: Lightbulb },
 ];
 
 const themes = [
@@ -287,8 +290,9 @@ function App() {
               <div className="suggestion-grid">
                 {suggestions.map((item, index) => (
                   <button className="suggestion-card" key={item.title} onClick={() => sendMessage(item.prompt)}>
-                    <span className={`suggestion-icon icon-${index}`}><Sparkles size={16} /></span>
-                    <span>{item.title}</span><ArrowUp size={14} className="suggestion-arrow" />
+                    <span className={`suggestion-icon icon-${index}`}><item.icon size={16} strokeWidth={1.9} /></span>
+                    <span className="suggestion-title">{item.title}</span>
+                    <span className="suggestion-go"><ArrowUpRight size={13} /></span>
                   </button>
                 ))}
               </div>
