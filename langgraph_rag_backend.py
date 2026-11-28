@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-import hashlib
+import re
 import sqlite3
 import tempfile
 from functools import lru_cache
@@ -18,7 +18,7 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_community.vectorstores import FAISS
 
-from langchain_core.messages import BaseMessage, SystemMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_core.tools import tool
 
 from langgraph.checkpoint.sqlite import SqliteSaver
@@ -58,9 +58,7 @@ _THREAD_RETRIEVERS: Dict[str, Any] = {}
 _THREAD_METADATA: Dict[str, dict] = {}
 _ROOT = Path(__file__).resolve().parent
 _RESUME_PATH = _ROOT / "frontend" / "public" / "Vivek_AI_Enginner.pdf"
-_RESUME_INDEX_PATH = _ROOT / ".data" / "resume_faiss"
-_RESUME_HASH_PATH = _ROOT / ".data" / "resume.sha256"
-_RESUME_RETRIEVER: Any = None
+_RESUME_TEXT: Optional[str] = None
 
 
 def _get_retriever(thread_id: Optional[str]):
@@ -71,48 +69,63 @@ def _get_retriever(thread_id: Optional[str]):
     return None
 
 
-def _get_resume_retriever():
-    """Lazily load or build the shared resume index and cache it between runs."""
-    global _RESUME_RETRIEVER
-    if _RESUME_RETRIEVER is not None:
-        return _RESUME_RETRIEVER
+def _get_resume_text() -> Optional[str]:
+    """Read and cache the short shared resume without needing embeddings."""
+    global _RESUME_TEXT
+    if _RESUME_TEXT is not None:
+        return _RESUME_TEXT
     if not _RESUME_PATH.is_file():
         return None
+    pages = PyPDFLoader(str(_RESUME_PATH)).load()
+    _RESUME_TEXT = "\n\n".join(page.page_content.strip() for page in pages if page.page_content.strip())
+    return _RESUME_TEXT or None
 
-    resume_hash = hashlib.sha256(_RESUME_PATH.read_bytes()).hexdigest()
-    index_exists = (
-        (_RESUME_INDEX_PATH / "index.faiss").is_file()
-        and (_RESUME_INDEX_PATH / "index.pkl").is_file()
-        and _RESUME_HASH_PATH.is_file()
-        and _RESUME_HASH_PATH.read_text(encoding="utf-8").strip() == resume_hash
+
+def is_roman_hinglish(text: str) -> bool:
+    """Detect common Roman Hindi words mixed with English."""
+    hindi_words = {
+        "aap", "ap", "apka", "apki", "batao", "btao", "baare", "bare",
+        "hai", "hain", "ho", "h", "kya", "ka", "ki", "ke", "mein",
+        "me", "mera", "meri", "mere", "mujhe", "m", "nahi", "nahin",
+        "aur", "se", "ko", "kaise", "kar", "karo", "kr", "sakte",
+        "chahiye", "bta", "mujh", "kuch", "bhi", "kyu", "kyon",
+    }
+    words = set(re.findall(r"\b[a-z]+\b", text.lower()))
+    return len(words & hindi_words) >= 2
+
+
+def _is_resume_query(text: str) -> bool:
+    terms = (
+        "resume", "cv", "education", "educational", "qualification", "degree",
+        "college", "university", "school", "skills", "experience", "career",
+        "work history", "profile", "certificate", "padhai", "shiksha", "kaam",
+        "naukri", "रिज्यूमे", "शिक्षा", "पढ़ाई", "कौशल", "अनुभव", "डिग्री",
+        "योग्यता", "नौकरी", "बायोडाटा",
     )
+    lower_text = text.lower()
+    return any(term in lower_text for term in terms)
 
-    if index_exists:
-        vector_store = FAISS.load_local(
-            str(_RESUME_INDEX_PATH),
-            _get_embeddings(),
-            allow_dangerous_deserialization=True,
-        )
-    else:
-        docs = PyPDFLoader(str(_RESUME_PATH)).load()
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
-            separators=["\n\n", "\n", " ", ""],
-        )
-        chunks = splitter.split_documents(docs)
-        for chunk in chunks:
-            chunk.metadata["source"] = _RESUME_PATH.name
-        vector_store = FAISS.from_documents(chunks, _get_embeddings())
-        _RESUME_INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
-        vector_store.save_local(str(_RESUME_INDEX_PATH))
-        _RESUME_HASH_PATH.write_text(resume_hash, encoding="utf-8")
 
-    _RESUME_RETRIEVER = vector_store.as_retriever(
-        search_type="similarity",
-        search_kwargs={"k": 4},
-    )
-    return _RESUME_RETRIEVER
+def rewrite_answer_in_hinglish(question: str, answer: str) -> str:
+    """Rewrite a Devanagari answer in the user's Roman Hinglish style."""
+    response = llm.invoke([
+        SystemMessage(content=(
+            "Rewrite the draft answer in natural Roman Hinglish, matching the user's "
+            "way of writing Hindi with Latin letters and English words. Use Latin "
+            "letters only; do not output any Devanagari characters. Preserve all "
+            "facts and useful Markdown structure. Do not add or remove facts."
+        )),
+        HumanMessage(content=f"User's question:\n{question}\n\nDraft answer:\n{answer}"),
+    ])
+    content = response.content
+    if isinstance(content, str):
+        return content.strip()
+    if isinstance(content, list):
+        return "\n".join(
+            part.get("text", "") for part in content
+            if isinstance(part, dict) and part.get("type", "text") == "text"
+        ).strip()
+    return str(content).strip()
 
 
 def ingest_pdf(
@@ -294,16 +307,25 @@ def rag_tool(
     Always include the thread_id when calling this tool.
     """
 
-    retrievers = []
+    context = []
+    metadata = []
+    source_files = []
     thread_retriever = _get_retriever(thread_id)
-    resume_retriever = _get_resume_retriever()
     if thread_retriever is not None:
         source = _THREAD_METADATA.get(str(thread_id), {}).get("filename", "Uploaded PDF")
-        retrievers.append((thread_retriever, source))
-    if resume_retriever is not None:
-        retrievers.append((resume_retriever, _RESUME_PATH.name))
+        source_files.append(source)
+        for doc in thread_retriever.invoke(query):
+            context.append(f"Source: {source}\n{doc.page_content}")
+            metadata.append({**doc.metadata, "source_file": source})
 
-    if not retrievers:
+    if _is_resume_query(query):
+        resume_text = _get_resume_text()
+        if resume_text:
+            source_files.append(_RESUME_PATH.name)
+            context.append(f"Source: {_RESUME_PATH.name}\n{resume_text}")
+            metadata.append({"source_file": _RESUME_PATH.name})
+
+    if not context:
         return {
             "error": (
                 "No resume or document is available. "
@@ -312,18 +334,11 @@ def rag_tool(
             "query": query,
         }
 
-    context = []
-    metadata = []
-    for retriever, source_file in retrievers:
-        for doc in retriever.invoke(query):
-            context.append(f"Source: {source_file}\n{doc.page_content}")
-            metadata.append({**doc.metadata, "source_file": source_file})
-
     return {
         "query": query,
         "context": context,
         "metadata": metadata,
-        "source_files": [source for _, source in retrievers],
+        "source_files": source_files,
     }
 
 
@@ -372,8 +387,17 @@ def chat_node(
             .get("thread_id")
         )
 
-    system_message = SystemMessage(
-        content=(
+    latest_user_message = next(
+        (message for message in reversed(state["messages"]) if isinstance(message, HumanMessage)),
+        None,
+    )
+    latest_user_text = (
+        latest_user_message.content
+        if latest_user_message and isinstance(latest_user_message.content, str)
+        else ""
+    )
+
+    system_content = (
             "You are a helpful AI assistant.\n\n"
 
             "Format responses in clean GitHub-flavored Markdown. Start with a direct "
@@ -399,8 +423,27 @@ def chat_node(
 
             "If the user asks about a document, use the rag_tool before answering. "
             "The owner's resume is searchable even when no user PDF has been uploaded."
-        )
     )
+
+    if is_roman_hinglish(latest_user_text):
+        system_content += (
+            "\n\nSTRICT SCRIPT RULE FOR THIS MESSAGE: The user wrote in Roman Hinglish. "
+            "Write the entire answer in Roman Hinglish using Latin letters only. "
+            "Do not use Devanagari anywhere, including headings or bullets."
+        )
+
+    if _is_resume_query(latest_user_text):
+        resume_text = _get_resume_text()
+        if resume_text:
+            system_content += (
+                "\n\nThe user is asking about the owner's resume. Use this extracted "
+                "resume text as the source of truth and answer from it. Do not say "
+                "the resume needs to be uploaded; it is already provided. If a detail "
+                "is absent from this text, say that the resume does not specify it.\n"
+                f"RESUME TEXT:\n{resume_text}"
+            )
+
+    system_message = SystemMessage(content=system_content)
 
     messages = [
         system_message,

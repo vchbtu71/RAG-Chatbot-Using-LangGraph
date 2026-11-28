@@ -15,6 +15,8 @@ from langgraph_rag_backend import (
     chatbot,
     delete_thread as delete_chat_thread,
     ingest_pdf,
+    is_roman_hinglish,
+    rewrite_answer_in_hinglish,
     retrieve_all_threads,
     thread_document_metadata,
 )
@@ -180,6 +182,21 @@ async def send_message(thread_id: str, request: ChatRequest) -> dict[str, str]:
         ),
         "I couldn't generate a response. Please try again.",
     )
+
+    contains_devanagari = any("\u0900" <= character <= "\u097f" for character in answer)
+    if is_roman_hinglish(message_text) and contains_devanagari:
+        try:
+            rewritten = await run_in_threadpool(
+                rewrite_answer_in_hinglish,
+                message_text,
+                answer,
+            )
+            if rewritten and not any("\u0900" <= char <= "\u097f" for char in rewritten):
+                answer = rewritten
+        except Exception:
+            # Keep the original answer if the optional script correction call fails.
+            pass
+
     return {"answer": answer}
 
 
