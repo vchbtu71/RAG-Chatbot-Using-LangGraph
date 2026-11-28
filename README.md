@@ -1,347 +1,103 @@
-## 📌 Project Overview
+# LangGraph RAG Chatbot
 
-A **LangGraph-powered RAG chatbot** that lets users upload PDF documents and interact with them through natural-language queries. The system combines **FAISS vector search and Hugging Face embeddings** for document retrieval with **Groq LLMs** for response generation, while LangGraph orchestrates tool calling and conversation flow. The Streamlit interface provides an interactive chat experience with support for PDF-based Q&A, web search, calculations, and stock-price queries.
+A document question-answering chatbot with a React interface, a FastAPI service, LangGraph tools, FAISS retrieval, Hugging Face embeddings, and Groq chat completion.
 
-
-# 🤖 LangGraph RAG Chatbot
-
-A document-based **RAG (Retrieval-Augmented Generation) chatbot** built using **LangGraph, LangChain, Groq, FAISS, Hugging Face embeddings, and Streamlit**.
-
-The application allows users to upload a PDF and ask questions about its content. The system retrieves relevant document chunks and uses an LLM to generate context-aware answers.
-
-## 🚀 Features
-
-* 📄 Upload and process PDF documents
-* 🔍 Semantic document retrieval using FAISS
-* 🧠 Hugging Face sentence-transformer embeddings
-* 🤖 LLM-powered responses using Groq
-* 🔗 LangGraph-based agent workflow
-* 🛠️ Tool calling support
-* 🌐 Web search using DuckDuckGo
-* 🧮 Calculator tool
-* 📈 Stock price lookup using Alpha Vantage
-* 💬 Persistent conversation history using SQLite
-* 🖥️ Interactive Streamlit frontend
-* 🧵 Separate conversation threads for different chats
-
-## 🏗️ Architecture
-
-```text
-                    ┌─────────────────────┐
-                    │     Streamlit UI    │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │     LangGraph       │
-                    │   Agent Workflow    │
-                    └──────────┬──────────┘
-                               │
-                 ┌─────────────┼─────────────┐
-                 │             │             │
-                 ▼             ▼             ▼
-            PDF RAG       Web Search     Calculator
-                 │
-                 ▼
-        ┌───────────────────┐
-        │ Hugging Face      │
-        │ Embeddings        │
-        └─────────┬─────────┘
-                  │
-                  ▼
-        ┌───────────────────┐
-        │       FAISS       │
-        │   Vector Store    │
-        └─────────┬─────────┘
-                  │
-                  ▼
-        ┌───────────────────┐
-        │      Groq LLM     │
-        └─────────┬─────────┘
-                  │
-                  ▼
-              Response
-```
-
-## 📂 Project Structure
+## Project layout
 
 ```text
 chatbot_by_rag/
-│
-├── langgraph_rag_backend.py
-├── streamlit_rag_frontend.py
-├── rag_by_langgraph.py
-│
+├── api.py                       # FastAPI endpoints and React static hosting
+├── langgraph_rag_backend.py     # LangGraph, tools, PDF ingestion, SQLite history
+├── frontend/                    # React + Vite user interface
+├── chatbot.db                   # Local conversation checkpoints (created at runtime)
 ├── pyproject.toml
-├── uv.lock
-├── .gitignore
-└── README.md
+└── uv.lock
 ```
 
-### Backend
+## Requirements
 
-`langgraph_rag_backend.py`
+- Python 3.12+
+- Node.js 20.19+ and npm
+- A Groq API key
+- Internet access for Groq requests and the first download of the embedding model
 
-Contains:
-
-* PDF ingestion
-* Text splitting
-* Embedding generation
-* FAISS vector store
-* RAG retrieval
-* LangGraph workflow
-* Tool definitions
-* Groq LLM configuration
-* SQLite conversation checkpointing
-
-### Frontend
-
-`streamlit_rag_frontend.py`
-
-Provides the Streamlit interface for:
-
-* Creating conversations
-* Uploading PDFs
-* Asking questions
-* Viewing previous conversations
-* Streaming model responses
-
-## 🛠️ Tech Stack
-
-| Technology    | Purpose                              |
-| ------------- | ------------------------------------ |
-| Python        | Core programming language            |
-| LangGraph     | Agent/workflow orchestration         |
-| LangChain     | RAG and LLM integration              |
-| Groq          | LLM inference                        |
-| Hugging Face  | Text embeddings                      |
-| FAISS         | Vector similarity search             |
-| Streamlit     | Frontend                             |
-| SQLite        | Conversation persistence             |
-| PyPDF         | PDF processing                       |
-| DuckDuckGo    | Web search                           |
-| Alpha Vantage | Stock market data                    |
-| uv            | Python package/dependency management |
-
-## ⚙️ Installation
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/vchbtu71/RAG-Chatbot-Using-LangGraph.git
-cd RAG-Chatbot-Using-LangGraph
-```
-
-### 2. Install dependencies
-
-This project uses `uv`.
-
-```bash
-uv sync
-```
-
-Or install the required packages manually:
-
-```bash
-uv add langchain-groq \
-langchain-huggingface \
-langchain-community \
-langchain-text-splitters \
-langgraph \
-langgraph-checkpoint-sqlite \
-faiss-cpu \
-sentence-transformers \
-duckduckgo-search \
-ddgs \
-pypdf \
-python-dotenv \
-requests \
-streamlit
-```
-
-## 🔑 Environment Variables
-
-Create a `.env` file in the project root:
+Create a `.env` file in this directory:
 
 ```env
 GROQ_API_KEY=your_groq_api_key
 ALPHA_VANTAGE_API_KEY=your_alpha_vantage_api_key
 ```
 
-Never commit your `.env` file.
+The Alpha Vantage key is optional unless you want to use stock lookup.
 
-Add it to `.gitignore`:
+## Install
 
-```gitignore
-.env
-.venv/
-__pycache__/
-*.pyc
-chatbot.db
+From the project folder, install the Python dependencies:
+
+```powershell
+uv sync
 ```
 
-## ▶️ Run the Application
+Install the frontend dependencies:
 
-Start the Streamlit application with:
-
-```bash
-uv run streamlit run streamlit_rag_frontend.py
+```powershell
+cd frontend
+npm install
+cd ..
 ```
 
-The application will be available at:
+## Run for development
 
-```text
-http://localhost:8501
+Open two terminals in the project folder.
+
+Terminal 1, start the API:
+
+```powershell
+uv run uvicorn api:app --reload --host 127.0.0.1 --port 8000
 ```
 
-## 📄 How RAG Works
+Terminal 2, start the React development server:
 
-When a PDF is uploaded:
-
-```text
-PDF
- ↓
-PyPDFLoader
- ↓
-Text Extraction
- ↓
-Recursive Character Text Splitting
- ↓
-Hugging Face Embeddings
- ↓
-FAISS Vector Store
- ↓
-Retriever
+```powershell
+cd frontend
+npm run dev
 ```
 
-When the user asks a question:
+Open the frontend URL printed by Vite, usually `http://localhost:5173`.
 
-```text
-User Question
-      ↓
-LangGraph Agent
-      ↓
-RAG Tool
-      ↓
-FAISS Retriever
-      ↓
-Relevant Document Chunks
-      ↓
-Groq LLM
-      ↓
-Generated Answer
+## Run as one local app
+
+Build the React interface:
+
+```powershell
+cd frontend
+npm run build
+cd ..
 ```
 
-The model therefore answers PDF-related questions using retrieved document context instead of relying only on its pretrained knowledge.
+Then start FastAPI:
 
-## 🧠 LangGraph Workflow
-
-The chatbot uses a graph-based workflow consisting of:
-
-```text
-START
-  ↓
-Chat Node
-  ↓
-Tool Decision
-  ↓
-Tool Node
-  ↓
-Chat Node
-  ↓
-END
+```powershell
+uv run uvicorn api:app --host 127.0.0.1 --port 8000
 ```
 
-The agent can decide when to use available tools such as:
+Open `http://localhost:8000`.
 
-* PDF retrieval
-* Web search
-* Calculator
-* Stock price lookup
+## Workflow
 
-## 💬 Example Queries
+1. The React app sends chat, PDF upload, and conversation-history requests to FastAPI.
+2. FastAPI passes chat requests to the LangGraph backend and sends PDF bytes to `ingest_pdf`.
+3. PDF ingestion extracts text, splits it into chunks, creates embeddings, and builds a FAISS retriever for that chat.
+4. LangGraph selects PDF retrieval, web search, calculator, or stock lookup as needed.
+5. SQLite stores conversation checkpoints; FastAPI returns messages to React for display.
 
-After uploading a PDF, you can ask:
+The embedding model loads on the first PDF ingestion and stays cached for the life of the API process. FAISS document indexes currently stay in memory, so re-upload documents after restarting the API.
 
-```text
-What is the main topic of this document?
+## API
 
-Summarize chapter 2.
-
-What methodology was used in the research?
-
-What are the key conclusions?
-
-Compare the approaches discussed in the document.
-```
-
-You can also use general-purpose tools for queries such as:
-
-```text
-What is 125 * 48?
-
-Search the web for the latest information about ...
-
-What is the current stock price of ...
-```
-
-## 🔐 Security
-
-API keys are loaded from environment variables:
-
-```python
-os.getenv("GROQ_API_KEY")
-```
-
-Do not hard-code API keys inside Python files or commit them to GitHub.
-
-## ☁️ Deployment
-
-The application can be deployed using **Streamlit Community Cloud**.
-
-Set the following secrets in the deployment settings:
-
-```toml
-GROQ_API_KEY = "your_groq_api_key"
-```
-
-Set the Streamlit entry point to:
-
-```text
-streamlit_rag_frontend.py
-```
-
-## ⚠️ Current Limitations
-
-* FAISS indexes are stored in memory for the active application process.
-* Uploaded documents are associated with individual conversation threads.
-* SQLite storage is local to the deployment environment.
-* Documents may need to be uploaded again after application restarts or redeployments.
-* This architecture is primarily suited to a portfolio/demo application rather than a large-scale production system.
-
-## 🔮 Future Improvements
-
-* [ ] Replace in-memory FAISS with Qdrant
-* [ ] Add persistent document storage
-* [ ] Add user authentication
-* [ ] Support multiple document uploads
-* [ ] Add document management
-* [ ] Improve citation/source display
-* [ ] Add streaming token-level responses
-* [ ] Add conversation deletion
-* [ ] Add production-grade persistent database
-* [ ] Improve retrieval using hybrid search
-* [ ] Add reranking for retrieved documents
-
-## 👨‍💻 Project Maintainer
-
-**Vivek Chaudhary**
-
-B.Tech Information Technology
-Harcourt Butler Technical University, Kanpur
-
-GitHub: [@vchbtu71](https://github.com/vchbtu71)
-
----
-
-⭐ If you found this project useful, consider giving it a star.
+- `GET /api/health`
+- `GET /api/threads`
+- `POST /api/threads`
+- `GET /api/threads/{thread_id}`
+- `POST /api/threads/{thread_id}/pdf`
+- `POST /api/threads/{thread_id}/messages`
