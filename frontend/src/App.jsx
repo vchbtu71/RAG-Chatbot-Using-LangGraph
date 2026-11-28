@@ -196,7 +196,7 @@ function App() {
       <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
         <div className="brand-row">
           <div className="brand-mark"><Sparkles size={17} strokeWidth={2.3} /></div>
-          <span className="brand-name">nova<span>.</span></span>
+          <span className="brand-name">AI Chatbot</span>
           <button className="icon-button sidebar-close" aria-label="Close menu" onClick={() => setSidebarOpen(false)}><X size={18} /></button>
         </div>
 
@@ -305,7 +305,7 @@ function App() {
                     {message.role === "assistant" ? <Sparkles size={15} /> : "V"}
                   </div>
                   <div className="message-body">
-                    <div className="message-author">{message.role === "assistant" ? "Nova" : "You"}</div>
+                    <div className="message-author">{message.role === "assistant" ? "AI Chatbot" : "You"}</div>
                     {message.role === "assistant" ? (
                       <div className="message-content assistant-markdown">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -321,7 +321,7 @@ function App() {
               {busy && (
                 <article className="message-row assistant">
                   <div className="message-avatar assistant-avatar"><Sparkles size={15} /></div>
-                  <div className="message-body"><div className="message-author">Nova</div><div className="thinking"><span /><span /><span /><em>{uploading ? "Reading your document" : "Thinking"}</em></div></div>
+                  <div className="message-body"><div className="message-author">AI Chatbot</div><div className="thinking"><span /><span /><span /><em>{uploading ? "Reading your document" : "Thinking"}</em></div></div>
                 </article>
               )}
               <div ref={bottomRef} />
@@ -343,9 +343,9 @@ function App() {
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={handleComposerKeyDown}
-              placeholder="Message Nova…"
+              placeholder="Message AI Chatbot…"
               rows={1}
-              aria-label="Message Nova"
+              aria-label="Message AI Chatbot"
               disabled={busy}
             />
             <div className="composer-toolbar">
@@ -367,7 +367,7 @@ function App() {
               </button>
             </div>
           </div>
-          <div className="composer-disclaimer">Nova can make mistakes. Verify important information.</div>
+          <div className="composer-disclaimer">AI Chatbot can make mistakes. Verify important information.</div>
         </div>
         <button className="scroll-bottom" aria-label="Scroll to latest" onClick={() => bottomRef.current?.scrollIntoView({ behavior: "smooth" })}><ArrowDown size={15} /></button>
       </main>
