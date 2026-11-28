@@ -7,6 +7,7 @@ import {
   LoaderCircle,
   Menu,
   MessageSquare,
+  Palette,
   Paperclip,
   Plus,
   Sparkles,
@@ -17,6 +18,13 @@ const suggestions = [
   { title: "Summarize a document", prompt: "Summarize the uploaded document." },
   { title: "Find key insights", prompt: "What are the key takeaways?" },
   { title: "Explain a concept", prompt: "Explain the main ideas in simple terms." },
+];
+
+const themes = [
+  { id: "ember", name: "Ember Night", description: "Warm peach on black." },
+  { id: "violet", name: "Violet", description: "Deep indigo with lavender light." },
+  { id: "crimson", name: "Crimson & Gold", description: "A red-black glow, gold buttons. The default." },
+  { id: "charcoal", name: "Charcoal & Gold", description: "Plain black with a gold accent." },
 ];
 
 async function api(path, options = {}) {
@@ -40,8 +48,11 @@ function App() {
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [theme, setTheme] = useState(() => localStorage.getItem("nova-theme") || "crimson");
+  const [themeOpen, setThemeOpen] = useState(false);
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
+  const themeMenuRef = useRef(null);
 
   useEffect(() => {
     api("/threads")
@@ -52,6 +63,27 @@ function App() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, busy]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem("nova-theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (!themeOpen) return undefined;
+    function closeOnOutsideClick(event) {
+      if (!themeMenuRef.current?.contains(event.target)) setThemeOpen(false);
+    }
+    function closeOnEscape(event) {
+      if (event.key === "Escape") setThemeOpen(false);
+    }
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [themeOpen]);
 
   async function openThread(id) {
     setThreadId(id);
@@ -186,7 +218,48 @@ function App() {
         <header className="topbar">
           <button className="icon-button menu-toggle" aria-label="Open menu" onClick={() => setSidebarOpen(true)}><Menu size={19} /></button>
           <div className="breadcrumb"><span>Workspace</span><span className="crumb-slash">/</span><strong>{isEmpty ? "New conversation" : "Conversation"}</strong></div>
-          <div className="topbar-right"><span className="status-dot" /> AI assistant <span className="topbar-model">· Groq</span></div>
+          <div className="topbar-right">
+            <span className="status-dot" /> AI assistant <span className="topbar-model">· Groq</span>
+            <div className="theme-control" ref={themeMenuRef}>
+              <button
+                className={`theme-trigger ${themeOpen ? "theme-trigger-open" : ""}`}
+                onClick={() => setThemeOpen((open) => !open)}
+                aria-label="Choose theme"
+                aria-expanded={themeOpen}
+                aria-haspopup="dialog"
+              >
+                <Palette size={19} strokeWidth={1.8} />
+              </button>
+              {themeOpen && (
+                <div className="theme-popover" role="dialog" aria-label="Choose a theme">
+                  <div className="theme-popover-heading">Theme</div>
+                  <div className="theme-options" role="radiogroup" aria-label="Color themes">
+                    {themes.map((option) => (
+                      <button
+                        key={option.id}
+                        className={`theme-option ${theme === option.id ? "theme-option-selected" : ""}`}
+                        role="radio"
+                        aria-checked={theme === option.id}
+                        onClick={() => {
+                          setTheme(option.id);
+                          setThemeOpen(false);
+                        }}
+                      >
+                        <span className={`theme-swatch swatch-${option.id}`} aria-hidden="true">
+                          <i /><i /><i />
+                        </span>
+                        <span className="theme-option-copy">
+                          <strong>{option.name}</strong>
+                          <span>{option.description}</span>
+                        </span>
+                        {theme === option.id && <Check className="theme-check" size={19} strokeWidth={2.6} />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </header>
 
         <section className={`conversation ${isEmpty ? "conversation-empty" : ""}`}>
