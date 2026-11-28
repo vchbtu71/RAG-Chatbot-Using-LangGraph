@@ -241,8 +241,10 @@ function App() {
       {sidebarOpen && <button className="mobile-scrim" aria-label="Close menu" onClick={() => setSidebarOpen(false)} />}
       <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
         <div className="brand-row">
-          <div className="brand-mark"><Sparkles size={17} strokeWidth={2.3} /></div>
-          <span className="brand-name">AI Chatbot</span>
+          <button className="brand-home" onClick={newThread} title="Go to home" aria-label="AI Chatbot home">
+            <div className="brand-mark"><Sparkles size={17} strokeWidth={2.3} /></div>
+            <span className="brand-name">AI Chatbot</span>
+          </button>
           <button className="icon-button sidebar-close" aria-label="Close menu" onClick={() => setSidebarOpen(false)}><X size={18} /></button>
         </div>
 

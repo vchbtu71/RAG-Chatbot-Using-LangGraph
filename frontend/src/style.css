@@ -116,3 +116,5 @@ html[data-theme] .sidebar-footer{margin-top:0}
 .thread-row:hover .thread-delete,.thread-row:focus-within .thread-delete{opacity:1}
 .thread-delete:hover{background:color-mix(in srgb,#e76f6f 16%,var(--surface-raised));color:#e98787}
 @media (hover:none){.thread-delete{opacity:1}}
+.brand-home{display:flex;align-items:center;gap:10px;padding:0;border:0;background:transparent;text-align:left;cursor:pointer}
+.brand-home:focus-visible{outline:2px solid var(--theme-accent);outline-offset:4px;border-radius:8px}
