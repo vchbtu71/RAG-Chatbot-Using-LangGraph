@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   ArrowDown,
   ArrowUp,
@@ -34,6 +36,19 @@ async function api(path, options = {}) {
     throw new Error(body.detail || `Request failed (${response.status})`);
   }
   return response.json();
+}
+
+function normalizeAssistantMarkdown(content) {
+  const markdown = typeof content === "string" ? content : String(content ?? "");
+  return markdown.replace(/<br\s*\/?>/gi, (tag, offset, source) => {
+    const lineStart = source.lastIndexOf("\n", offset) + 1;
+    const nextLineBreak = source.indexOf("\n", offset);
+    const lineEnd = nextLineBreak < 0 ? source.length : nextLineBreak;
+    const line = source.slice(lineStart, lineEnd);
+
+    // Keep generated table rows intact; use a readable separator within the cell.
+    return /^\s*\|.*\|\s*$/.test(line) ? " · " : "\n\n";
+  });
 }
 
 function App() {
@@ -287,7 +302,15 @@ function App() {
                   </div>
                   <div className="message-body">
                     <div className="message-author">{message.role === "assistant" ? "Nova" : "You"}</div>
-                    <div className="message-content">{message.content}</div>
+                    {message.role === "assistant" ? (
+                      <div className="message-content assistant-markdown">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {normalizeAssistantMarkdown(message.content)}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div className="message-content">{message.content}</div>
+                    )}
                   </div>
                 </article>
               ))}

@@ -77,3 +77,20 @@ html[data-theme] .scroll-bottom{background:var(--surface-raised);border-color:va
 .mobile-scrim{color:transparent}
 @keyframes theme-in{from{opacity:0;transform:translateY(-5px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:760px){.theme-trigger{width:34px;height:34px}.theme-popover{top:45px;right:-2px;width:min(460px,calc(100vw - 20px))}.theme-option{min-height:76px}.theme-swatch{width:50px;height:50px;flex-basis:50px}}
+
+.assistant-markdown{white-space:normal;line-height:1.8}
+.assistant-markdown p{margin:0 0 1em}
+.assistant-markdown p:last-child{margin-bottom:0}
+.assistant-markdown h1,.assistant-markdown h2,.assistant-markdown h3,.assistant-markdown h4{margin:1.35em 0 .55em;color:var(--text-main);font-family:Manrope,sans-serif;line-height:1.35}
+.assistant-markdown h1{font-size:1.35em}.assistant-markdown h2{font-size:1.2em}.assistant-markdown h3,.assistant-markdown h4{font-size:1.08em}
+.assistant-markdown ul,.assistant-markdown ol{margin:.45em 0 1.1em;padding-left:1.5em}
+.assistant-markdown li{padding-left:.18em}.assistant-markdown li+li{margin-top:.42em}.assistant-markdown li>p{margin:.3em 0}
+.assistant-markdown a{color:var(--theme-accent);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--theme-accent) 45%,transparent);text-underline-offset:2px}
+.assistant-markdown blockquote{margin:1em 0;padding:.15em 0 .15em 1em;border-left:2px solid var(--theme-accent);color:var(--text-dim)}
+.assistant-markdown hr{margin:1.25em 0;border:0;border-top:1px solid var(--theme-line)}
+.assistant-markdown table{display:block;width:100%;max-width:100%;overflow-x:auto;border-collapse:collapse;margin:1em 0 1.2em;font-size:.94em;line-height:1.6}
+.assistant-markdown th,.assistant-markdown td{padding:9px 12px;border:1px solid var(--theme-line);text-align:left;vertical-align:top}
+.assistant-markdown th{background:var(--surface-raised);color:var(--text-main);font-weight:700}.assistant-markdown tr:nth-child(even) td{background:color-mix(in srgb,var(--surface) 65%,transparent)}
+.assistant-markdown code{padding:.12em .38em;border-radius:5px;background:var(--surface-raised);color:var(--theme-accent);font-size:.9em}
+.assistant-markdown pre{max-width:100%;overflow:auto;margin:1em 0;padding:13px 15px;border:1px solid var(--theme-line);border-radius:9px;background:var(--surface);line-height:1.55}
+.assistant-markdown pre code{padding:0;background:transparent;color:var(--text-soft)}

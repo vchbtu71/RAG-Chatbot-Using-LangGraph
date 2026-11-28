@@ -326,6 +326,11 @@ def chat_node(
         content=(
             "You are a helpful AI assistant.\n\n"
 
+            "Format responses in clean GitHub-flavored Markdown. "
+            "Use short paragraphs, blank lines between sections, and bullet lists "
+            "for several related points. Use tables only for compact comparisons. "
+            "Never include raw HTML tags such as `<br>`.\n\n"
+
             "For questions about the uploaded PDF, "
             "use the `rag_tool` and include the thread_id "
             f"`{thread_id}`.\n\n"
