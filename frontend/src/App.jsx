@@ -42,7 +42,7 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [file, setFile] = useState(null);
-  const [document, setDocument] = useState(null);
+  const [uploadedDocument, setUploadedDocument] = useState(null);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -93,10 +93,10 @@ function App() {
     try {
       const data = await api(`/threads/${id}`);
       setMessages(data.messages);
-      setDocument(data.document?.filename ? data.document : null);
+      setUploadedDocument(data.document?.filename ? data.document : null);
     } catch (reason) {
       setMessages([]);
-      setDocument(null);
+      setUploadedDocument(null);
       setError(reason.message);
     }
   }
@@ -106,7 +106,7 @@ function App() {
       const thread = await api("/threads", { method: "POST" });
       setThreadId(thread.id);
       setMessages([]);
-      setDocument(null);
+      setUploadedDocument(null);
       setFile(null);
       setDraft("");
       setError("");
@@ -133,7 +133,7 @@ function App() {
           method: "POST",
           body: form,
         });
-        setDocument(indexed);
+        setUploadedDocument(indexed);
         setFile(null);
         setFileInputKey((value) => value + 1);
         setUploading(false);
@@ -302,8 +302,8 @@ function App() {
         </section>
 
         <div className="composer-area">
-          {document && (
-            <div className="document-pill"><FileText size={15} /><span>{document.filename}</span><span className="document-pages">{document.documents} pages</span><Check size={14} className="document-check" /></div>
+          {uploadedDocument && (
+            <div className="document-pill"><FileText size={15} /><span>{uploadedDocument.filename}</span><span className="document-pages">{uploadedDocument.documents} pages</span><Check size={14} className="document-check" /></div>
           )}
           {file && (
             <div className="file-preview"><FileText size={15} /><span>{file.name}</span><button className="icon-button remove-file" aria-label="Remove file" onClick={() => { setFile(null); setFileInputKey((value) => value + 1); }}><X size={15} /></button></div>
