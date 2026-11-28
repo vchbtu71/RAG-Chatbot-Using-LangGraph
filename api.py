@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from langgraph_rag_backend import (
     chatbot,
+    delete_thread as delete_chat_thread,
     ingest_pdf,
     retrieve_all_threads,
     thread_document_metadata,
@@ -124,6 +125,12 @@ def get_thread(thread_id: str) -> dict[str, Any]:
         "messages": messages,
         "document": thread_document_metadata(thread_id),
     }
+
+
+@app.delete("/api/threads/{thread_id}")
+def delete_thread(thread_id: str) -> dict[str, bool]:
+    delete_chat_thread(thread_id)
+    return {"deleted": True}
 
 
 @app.post("/api/threads/{thread_id}/pdf")

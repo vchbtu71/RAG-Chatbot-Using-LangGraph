@@ -499,3 +499,11 @@ def thread_document_metadata(
         str(thread_id),
         {}
     )
+
+
+def delete_thread(thread_id: str) -> None:
+    """Delete a chat's saved checkpoints and in-memory PDF index."""
+    thread_id = str(thread_id)
+    checkpointer.delete_thread(thread_id)
+    _THREAD_RETRIEVERS.pop(thread_id, None)
+    _THREAD_METADATA.pop(thread_id, None)

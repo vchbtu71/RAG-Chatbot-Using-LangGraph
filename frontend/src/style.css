@@ -110,3 +110,9 @@ html[data-theme] .scroll-bottom{background:var(--surface-raised);border-color:va
 .sidebar-action:hover{background:var(--surface-raised);color:var(--text-main)}
 .sidebar-action:hover svg{color:var(--theme-accent)}
 html[data-theme] .sidebar-footer{margin-top:0}
+.thread-row{position:relative}
+.thread-row .thread-item{padding-right:34px}
+.thread-delete{position:absolute;top:50%;right:4px;width:24px;height:24px;display:grid;place-items:center;transform:translateY(-50%);border:0;border-radius:6px;background:transparent;color:var(--text-dim);opacity:0;cursor:pointer;transition:opacity .15s,background .15s,color .15s}
+.thread-row:hover .thread-delete,.thread-row:focus-within .thread-delete{opacity:1}
+.thread-delete:hover{background:color-mix(in srgb,#e76f6f 16%,var(--surface-raised));color:#e98787}
+@media (hover:none){.thread-delete{opacity:1}}

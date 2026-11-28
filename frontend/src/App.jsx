@@ -18,6 +18,7 @@ import {
   Plus,
   Sparkles,
   X,
+  Trash2,
 } from "lucide-react";
 
 const suggestions = [
@@ -135,6 +136,24 @@ function App() {
     }
   }
 
+  async function deleteThread(id, title) {
+    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    try {
+      await api(`/threads/${id}`, { method: "DELETE" });
+      setThreads((current) => current.filter((thread) => thread.id !== id));
+      if (threadId === id) {
+        setThreadId(crypto.randomUUID());
+        setMessages([]);
+        setUploadedDocument(null);
+        setFile(null);
+        setDraft("");
+      }
+      setError("");
+    } catch (reason) {
+      setError(reason.message);
+    }
+  }
+
   async function sendMessage(text = draft) {
     const prompt = text.trim();
     if ((!prompt && !file) || busy || uploading) return;
@@ -241,15 +260,25 @@ function App() {
           {threads.length === 0 ? (
             <div className="empty-history">Your conversations will appear here.</div>
           ) : threads.map((thread) => (
-            <button
-              className={`thread-item ${thread.id === threadId ? "selected" : ""}`}
-              key={thread.id}
-              title={thread.title}
-              onClick={() => openThread(thread.id)}
-            >
-              <MessageSquare size={15} />
-              <span>{thread.title}</span>
-            </button>
+            <div className="thread-row" key={thread.id}>
+              <button
+                className={`thread-item ${thread.id === threadId ? "selected" : ""}`}
+                title={thread.title}
+                onClick={() => openThread(thread.id)}
+              >
+                <MessageSquare size={15} />
+                <span>{thread.title}</span>
+              </button>
+              <button
+                className="thread-delete"
+                type="button"
+                title={`Delete ${thread.title}`}
+                aria-label={`Delete ${thread.title}`}
+                onClick={() => deleteThread(thread.id, thread.title)}
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
           ))}
         </div>
 
