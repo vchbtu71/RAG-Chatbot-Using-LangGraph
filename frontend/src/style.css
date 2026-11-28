@@ -88,7 +88,9 @@ html[data-theme] .scroll-bottom{background:var(--surface-raised);border-color:va
 .assistant-markdown a{color:var(--theme-accent);text-decoration:underline;text-decoration-color:color-mix(in srgb,var(--theme-accent) 45%,transparent);text-underline-offset:2px}
 .assistant-markdown blockquote{margin:1em 0;padding:.15em 0 .15em 1em;border-left:2px solid var(--theme-accent);color:var(--text-dim)}
 .assistant-markdown hr{margin:1.25em 0;border:0;border-top:1px solid var(--theme-line)}
-.assistant-markdown table{display:block;width:100%;max-width:100%;overflow-x:auto;border-collapse:collapse;margin:1em 0 1.2em;font-size:.94em;line-height:1.6}
+.assistant-markdown table{width:100%;min-width:650px;max-width:100%;table-layout:auto;border-collapse:collapse;margin:1em 0 1.2em;font-size:.94em;line-height:1.6}
+.assistant-markdown th:first-child,.assistant-markdown td:first-child{min-width:135px}
+.assistant-markdown th:last-child,.assistant-markdown td:last-child{min-width:480px}
 .assistant-markdown th,.assistant-markdown td{padding:9px 12px;border:1px solid var(--theme-line);text-align:left;vertical-align:top}
 .assistant-markdown th{background:var(--surface-raised);color:var(--text-main);font-weight:700}.assistant-markdown tr:nth-child(even) td{background:color-mix(in srgb,var(--surface) 65%,transparent)}
 .assistant-markdown code{padding:.12em .38em;border-radius:5px;background:var(--surface-raised);color:var(--theme-accent);font-size:.9em}
