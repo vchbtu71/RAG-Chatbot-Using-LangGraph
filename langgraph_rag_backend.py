@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import os
+import hashlib
 import sqlite3
 import tempfile
 from functools import lru_cache
+from pathlib import Path
 from typing import Annotated, Any, Dict, Optional, TypedDict
 
 import requests
@@ -54,6 +56,11 @@ def _get_embeddings():
 
 _THREAD_RETRIEVERS: Dict[str, Any] = {}
 _THREAD_METADATA: Dict[str, dict] = {}
+_ROOT = Path(__file__).resolve().parent
+_RESUME_PATH = _ROOT / "frontend" / "public" / "Vivek_AI_Enginner.pdf"
+_RESUME_INDEX_PATH = _ROOT / ".data" / "resume_faiss"
+_RESUME_HASH_PATH = _ROOT / ".data" / "resume.sha256"
+_RESUME_RETRIEVER: Any = None
 
 
 def _get_retriever(thread_id: Optional[str]):
@@ -62,6 +69,50 @@ def _get_retriever(thread_id: Optional[str]):
         return _THREAD_RETRIEVERS[thread_id]
 
     return None
+
+
+def _get_resume_retriever():
+    """Lazily load or build the shared resume index and cache it between runs."""
+    global _RESUME_RETRIEVER
+    if _RESUME_RETRIEVER is not None:
+        return _RESUME_RETRIEVER
+    if not _RESUME_PATH.is_file():
+        return None
+
+    resume_hash = hashlib.sha256(_RESUME_PATH.read_bytes()).hexdigest()
+    index_exists = (
+        (_RESUME_INDEX_PATH / "index.faiss").is_file()
+        and (_RESUME_INDEX_PATH / "index.pkl").is_file()
+        and _RESUME_HASH_PATH.is_file()
+        and _RESUME_HASH_PATH.read_text(encoding="utf-8").strip() == resume_hash
+    )
+
+    if index_exists:
+        vector_store = FAISS.load_local(
+            str(_RESUME_INDEX_PATH),
+            _get_embeddings(),
+            allow_dangerous_deserialization=True,
+        )
+    else:
+        docs = PyPDFLoader(str(_RESUME_PATH)).load()
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200,
+            separators=["\n\n", "\n", " ", ""],
+        )
+        chunks = splitter.split_documents(docs)
+        for chunk in chunks:
+            chunk.metadata["source"] = _RESUME_PATH.name
+        vector_store = FAISS.from_documents(chunks, _get_embeddings())
+        _RESUME_INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
+        vector_store.save_local(str(_RESUME_INDEX_PATH))
+        _RESUME_HASH_PATH.write_text(resume_hash, encoding="utf-8")
+
+    _RESUME_RETRIEVER = vector_store.as_retriever(
+        search_type="similarity",
+        search_kwargs={"k": 4},
+    )
+    return _RESUME_RETRIEVER
 
 
 def ingest_pdf(
@@ -237,43 +288,42 @@ def rag_tool(
     thread_id: Optional[str] = None
 ) -> dict:
     """
-    Retrieve relevant information from the uploaded PDF
-    for this chat thread.
+    Retrieve relevant information from this chat's uploaded PDF and the owner's
+    resume, which is available in every chat.
 
     Always include the thread_id when calling this tool.
     """
 
-    retriever = _get_retriever(thread_id)
+    retrievers = []
+    thread_retriever = _get_retriever(thread_id)
+    resume_retriever = _get_resume_retriever()
+    if thread_retriever is not None:
+        source = _THREAD_METADATA.get(str(thread_id), {}).get("filename", "Uploaded PDF")
+        retrievers.append((thread_retriever, source))
+    if resume_retriever is not None:
+        retrievers.append((resume_retriever, _RESUME_PATH.name))
 
-    if retriever is None:
-
+    if not retrievers:
         return {
             "error": (
-                "No document indexed for this chat. "
+                "No resume or document is available. "
                 "Upload a PDF first."
             ),
             "query": query,
         }
 
-    result = retriever.invoke(query)
-
-    context = [
-        doc.page_content
-        for doc in result
-    ]
-
-    metadata = [
-        doc.metadata
-        for doc in result
-    ]
+    context = []
+    metadata = []
+    for retriever, source_file in retrievers:
+        for doc in retriever.invoke(query):
+            context.append(f"Source: {source_file}\n{doc.page_content}")
+            metadata.append({**doc.metadata, "source_file": source_file})
 
     return {
         "query": query,
         "context": context,
         "metadata": metadata,
-        "source_file": _THREAD_METADATA
-            .get(str(thread_id), {})
-            .get("filename"),
+        "source_files": [source for _, source in retrievers],
     }
 
 
@@ -334,17 +384,16 @@ def chat_node(
             "comparison truly needs it. Match the user's language. Never include raw "
             "HTML tags such as `<br>`.\n\n"
 
-            "For questions about the uploaded PDF, "
+            "For questions about the uploaded PDF or the owner's resume, "
             "use the `rag_tool` and include the thread_id "
-            f"`{thread_id}`.\n\n"
+            f"`{thread_id}`. The owner's resume is available in every chat.\n\n"
 
             "You can use web search for current information, "
             "the stock price tool for stock information, "
             "and the calculator for arithmetic.\n\n"
 
-            "If the user asks something about a PDF and "
-            "no PDF is available, tell the user to upload "
-            "a PDF first."
+            "If the user asks about a document, use the rag_tool before answering. "
+            "The owner's resume is searchable even when no user PDF has been uploaded."
         )
     )
 

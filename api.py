@@ -21,6 +21,7 @@ from langgraph_rag_backend import (
 
 ROOT = Path(__file__).resolve().parent
 FRONTEND_DIST = ROOT / "frontend" / "dist"
+RESUME_FILE = ROOT / "frontend" / "public" / "Vivek_AI_Enginner.pdf"
 MAX_PDF_BYTES = 25 * 1024 * 1024
 
 app = FastAPI(title="LangGraph RAG Chatbot", version="1.0.0")
@@ -80,6 +81,17 @@ def _thread_summary(thread_id: str) -> dict[str, Any]:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/resume")
+def download_resume() -> FileResponse:
+    if not RESUME_FILE.is_file():
+        raise HTTPException(status_code=404, detail="Resume file not found.")
+    return FileResponse(
+        RESUME_FILE,
+        media_type="application/pdf",
+        filename="Vivek_AI_Enginner.pdf",
+    )
 
 
 @app.get("/api/threads")
