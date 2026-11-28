@@ -381,7 +381,12 @@ def chat_node(
             "Use short paragraphs and concise bullet points, with one idea per bullet. "
             "For news and other grouped facts, use topic headings and bullets instead "
             "of a table. Do not use tables unless the user asks for one or a compact "
-            "comparison truly needs it. Match the user's language. Never include raw "
+            "comparison truly needs it. Match the user's language and writing script. "
+            "If the user writes Hindi in Latin letters (Hinglish), reply in natural "
+            "Hinglish using Latin letters; do not switch to Devanagari. If the user "
+            "writes Hindi in Devanagari, reply in Devanagari. If the user writes in "
+            "English, reply in English. For mixed-language messages, follow the "
+            "dominant language and script. Never include raw "
             "HTML tags such as `<br>`.\n\n"
 
             "For questions about the uploaded PDF or the owner's resume, "
