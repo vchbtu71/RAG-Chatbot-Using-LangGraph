@@ -182,7 +182,6 @@ function App() {
 
         <button className="new-chat" onClick={newThread}>
           <Plus size={17} /> <span>New conversation</span>
-          <kbd>⌘ K</kbd>
         </button>
 
         <div className="sidebar-label">YOUR WORKSPACE</div>
