@@ -169,6 +169,8 @@ function App() {
   }
 
   const isEmpty = messages.length === 0;
+  const activeThread = threads.find((thread) => thread.id === threadId);
+  const conversationTitle = activeThread?.title || (isEmpty ? "New conversation" : "Conversation");
 
   return (
     <div className="app-shell">
@@ -216,7 +218,7 @@ function App() {
       <main className="main-panel">
         <header className="topbar">
           <button className="icon-button menu-toggle" aria-label="Open menu" onClick={() => setSidebarOpen(true)}><Menu size={19} /></button>
-          <div className="breadcrumb"><span>Workspace</span><span className="crumb-slash">/</span><strong>{isEmpty ? "New conversation" : "Conversation"}</strong></div>
+          <div className="breadcrumb"><strong>{conversationTitle}</strong></div>
           <div className="topbar-right">
             <span className="status-dot" /> AI assistant <span className="topbar-model">· Groq</span>
             <div className="theme-control" ref={themeMenuRef}>
