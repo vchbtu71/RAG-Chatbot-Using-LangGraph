@@ -188,8 +188,6 @@ function App() {
   }
 
   const isEmpty = messages.length === 0;
-  const activeThread = threads.find((thread) => thread.id === threadId);
-  const conversationTitle = activeThread?.title || (isEmpty ? "New conversation" : "Conversation");
   const themePopover = (
     <div className="theme-popover" role="dialog" aria-label="Choose a theme">
       <div className="theme-popover-heading">Theme</div>
@@ -294,7 +292,6 @@ function App() {
       <main className="main-panel">
         <header className="topbar">
           <button className="icon-button menu-toggle" aria-label="Open menu" onClick={() => setSidebarOpen(true)}><Menu size={19} /></button>
-          <div className="breadcrumb"><strong>{conversationTitle}</strong></div>
           <div className="topbar-right">
             <span className="status-dot" /> AI assistant <span className="topbar-model">· Groq</span>
             <div className="theme-control" ref={themeMenuRef}>
