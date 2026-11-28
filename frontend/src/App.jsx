@@ -16,7 +16,6 @@ import {
   Paperclip,
   Plus,
   Sparkles,
-  Settings,
   X,
 } from "lucide-react";
 
@@ -69,7 +68,6 @@ function App() {
   const [fileInputKey, setFileInputKey] = useState(0);
   const [theme, setTheme] = useState(() => localStorage.getItem("nova-theme") || "crimson");
   const [themeOpen, setThemeOpen] = useState(false);
-  const [themeAnchor, setThemeAnchor] = useState("top");
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
   const themeMenuRef = useRef(null);
@@ -268,22 +266,6 @@ function App() {
             </svg>
             <span>GitHub</span>
           </a>
-          <div
-            className="sidebar-settings-control"
-            ref={themeAnchor === "sidebar" ? themeMenuRef : null}
-          >
-            <button
-              className="sidebar-action"
-              onClick={() => {
-                setThemeAnchor("sidebar");
-                setThemeOpen((open) => themeAnchor === "sidebar" ? !open : true);
-              }}
-              aria-expanded={themeOpen && themeAnchor === "sidebar"}
-            >
-              <Settings size={18} /><span>Settings</span>
-            </button>
-            {themeOpen && themeAnchor === "sidebar" && themePopover}
-          </div>
         </div>
 
         <div className="sidebar-footer">
@@ -299,20 +281,17 @@ function App() {
           <div className="breadcrumb"><strong>{conversationTitle}</strong></div>
           <div className="topbar-right">
             <span className="status-dot" /> AI assistant <span className="topbar-model">· Groq</span>
-            <div className="theme-control" ref={themeAnchor === "top" ? themeMenuRef : null}>
+            <div className="theme-control" ref={themeMenuRef}>
               <button
                 className={`theme-trigger ${themeOpen ? "theme-trigger-open" : ""}`}
-                onClick={() => {
-                  setThemeAnchor("top");
-                  setThemeOpen((open) => themeAnchor === "top" ? !open : true);
-                }}
+                onClick={() => setThemeOpen((open) => !open)}
                 aria-label="Choose theme"
                 aria-expanded={themeOpen}
                 aria-haspopup="dialog"
               >
                 <Palette size={19} strokeWidth={1.8} />
               </button>
-              {themeOpen && themeAnchor === "top" && themePopover}
+              {themeOpen && themePopover}
             </div>
           </div>
         </header>

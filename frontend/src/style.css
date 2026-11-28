@@ -109,6 +109,4 @@ html[data-theme] .scroll-bottom{background:var(--surface-raised);border-color:va
 .sidebar-action svg{flex:0 0 auto;color:var(--text-dim)}
 .sidebar-action:hover{background:var(--surface-raised);color:var(--text-main)}
 .sidebar-action:hover svg{color:var(--theme-accent)}
-.sidebar-settings-control{position:relative}
-.sidebar-settings-control .theme-popover{top:auto;right:auto;bottom:calc(100% + 8px);left:0;transform-origin:bottom left}
 html[data-theme] .sidebar-footer{margin-top:0}
